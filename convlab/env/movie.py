@@ -1199,7 +1199,7 @@ class MovieActInActOutEnvironment(object):
                 print ("Turn %d usr: %s, inform_slots: %s, request_slots: %s" % (user_action['turn'], user_action['diaact'], user_action['inform_slots'], user_action['request_slots']))
                 print ("Turn %d usr: %s" % (user_action['turn'], user_action['nl']))
 
-    def rule_policy(self):
+    def rule_policy(self, state, algorithm, body):
         """ Rule Policy """
         
         if self.current_slot_id < len(self.request_set):
