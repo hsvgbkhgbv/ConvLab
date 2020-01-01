@@ -139,7 +139,9 @@ class VanillaDQN(SARSA):
             total_loss = torch.tensor(0.0)
             for _ in range(self.training_iter):
                 batch = self.sample()
-                clock.set_batch_size(len(batch))
+                # By Yuan Zhang: batch_size not correct 
+                batch_size = batch['states'].size()[0]
+                clock.set_batch_size(batch_size)
                 for _ in range(self.training_batch_iter):
                     loss = self.calc_q_loss(batch)
                     self.net.train_step(loss, self.optim, self.lr_scheduler, clock=clock, global_net=self.global_net)
