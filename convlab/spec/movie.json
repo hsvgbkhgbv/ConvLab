@@ -1,0 +1,74 @@
+{
+  "dqn": {
+    "agent": [{
+      "name": "DialogAgent",
+      "algorithm": {
+        "name": "DQN",
+        "action_pdtype": "Argmax",
+        "action_policy": "epsilon_greedy",
+        "explore_var_spec": {
+          "name": "linear_decay",
+          "start_val": 0.1,
+          "end_val": 0.01,
+          "start_step": 0,
+          "end_step": 100000
+        },
+        "gamma": 0.9,
+        "training_batch_iter": 1,
+        "training_iter": 10,
+        "training_frequency": 10,
+        "training_start_step": 32,
+        "normalize_state": false 
+      },        
+      "memory": {
+        "name": "PrioritizedReplay",
+        "alpha": 1,
+        "epsilon": 0,
+        "batch_size": 16,
+        "max_size": 5000,
+        "use_cer": true
+       },
+      "net": {
+        "type": "MLPNet",
+        "hid_layers": [100],
+        "hid_layers_activation": "relu",
+        "clip_grad_val": 1.0,
+        "loss_spec": {
+          "name": "MSELoss"
+        },
+        "optim_spec": {
+          "name": "RMSprop",
+          "lr": 0.001
+        },
+        "lr_scheduler_spec": {
+          "name": "StepLR",
+          "step_size": 100,
+          "gamma": 0.999
+        },
+        "update_type": "replace",
+        "update_frequency": 100,
+        "gpu": false
+      }
+    }],
+    "env": [{
+      "name": "movie",
+      "action_dim": 43,
+      "observation_dim": 272,
+      "max_t": 40,
+      "max_frame": 100000
+    }],
+    "meta": {
+      "distributed": false,
+      "num_eval": 100,
+      "log_frequency": 10,
+      "eval_frequency": 1000000,
+      "max_tick_unit": "total_t",
+      "max_trial": 1,
+      "max_session": 1,
+      "resources": {
+        "num_cpus": 1,
+        "num_gpus": 0
+      }
+    }
+  },
+}

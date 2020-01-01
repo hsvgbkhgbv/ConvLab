@@ -1,5 +1,11 @@
+# encoding=utf-8
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
+
+"""
+和multiwoz.py的区别：movie这个环境没有把user和system的state tracker分隔开，导致这个设计不是完全的e2e，输出的state已经是一个向量，输入的action也需要是一个向量，所以agent的nlu/dst/nlg都是幌子。。。
+"""
+
 
 import os
 import pickle
@@ -1069,7 +1075,7 @@ class MovieActInActOutEnvironment(object):
     
     def action_decode(self, action):
         """ DQN: Input state, output action """
-        if isinstance(action, np.ndarray):
+        if isinstance(action, np.ndarray) and len(action.shape)>0:
             action = action[0]
         act_slot_response = deepcopy(self.feasible_actions[action])
         return {'act_slot_response': act_slot_response, 'act_slot_value_response': None}
@@ -1227,19 +1233,16 @@ class MovieEnv(BaseEnv):
 
     e.g. env_spec
     "env": [{
-      "name": "gridworld",
-      "max_t": 20,
-      "max_tick": 3,
-      "unity": {
-        "gridSize": 6,
-        "numObstacles": 2,
-        "numGoals": 1
-      }
-    }],
+      "name": "movie",
+      "action_dim": 43,
+      "observation_dim": 272,
+      "max_t": 40,
+      "max_frame": 100000
+    }]
     '''
 
     def __init__(self, spec, e=None, env_space=None):
-        super(MovieEnv, self).__init__(spec, e, env_space)
+        super(MovieEnv, self).__init__(spec, e)
         util.set_attr(self, self.env_spec, [
             'observation_dim',
             'action_dim',
@@ -1277,27 +1280,27 @@ class MovieEnv(BaseEnv):
 
     @lab_api
     def reset(self):
-        _reward = np.nan
-        env_info_dict = self.u_env.reset(train_mode=(util.get_lab_mode() != 'dev'), config=self.env_spec.get('multiwoz'))
+#         _reward = np.nan
+        env_info_dict = self.u_env.reset(train_mode=(util.get_lab_mode() != 'dev'), config=self.env_spec.get('movie'))
         a, b = 0, 0  # default singleton aeb
         env_info_a = self._get_env_info(env_info_dict, a)
         state = env_info_a.states[b]
-        self.done = done = False
-        logger.debug(f'Env {self.e} reset reward: {_reward}, state: {state}, done: {done}')
-        return _reward, state, done
+        self.done = False
+        logger.debug(f'Env {self.e} reset state: {state}')
+        return state
 
     @lab_api
     def step(self, action):
         env_info_dict = self.u_env.step(action)
         a, b = 0, 0  # default singleton aeb
         env_info_a = self._get_env_info(env_info_dict, a)
-        reward = env_info_a.rewards[b] * self.reward_scale
+        reward = env_info_a.rewards[b]  # * self.reward_scale
         state = env_info_a.states[b]
         done = env_info_a.local_done[b]
         self.done = done = done or self.clock.t > self.max_t
         logger.debug(f'Env {self.e} step reward: {reward}, state: {state}, done: {done}')
-        return reward, state, done
-
+        return state, reward, done, env_info_a 
+    
     @lab_api
     def close(self):
         self.u_env.close()
@@ -1316,7 +1319,7 @@ class MovieEnv(BaseEnv):
     def space_reset(self):
         self._check_u_brain_to_agent()
         self.done = False
-        env_info_dict = self.u_env.reset(train_mode=(util.get_lab_mode() != 'dev'), config=self.env_spec.get('multiwoz'))
+        env_info_dict = self.u_env.reset(train_mode=(util.get_lab_mode() != 'dev'), config=self.env_spec.get('movie'))
         _reward_e, state_e, done_e = self.env_space.aeb_space.init_data_s(ENV_DATA_NAMES, e=self.e)
         for (a, b), body in util.ndenumerate_nonan(self.body_e):
             env_info_a = self._get_env_info(env_info_dict, a)
