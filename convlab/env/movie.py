@@ -1257,9 +1257,9 @@ class MovieEnv(BaseEnv):
             pass
         else:
             self.space_init(env_space)
-
+        self.evaluator = None # we have self.get_task_success() already...
         logger.info(util.self_desc(self))
-
+         
     def patch_gym_spaces(self, u_env):
         '''
         For standardization, use gym spaces to represent observation and action spaces.
@@ -1340,9 +1340,20 @@ class MovieEnv(BaseEnv):
         reward_e, state_e, done_e = self.env_space.aeb_space.init_data_s(ENV_DATA_NAMES, e=self.e)
         for (a, b), body in util.ndenumerate_nonan(self.body_e):
             env_info_a = self._get_env_info(env_info_dict, a)
-            reward_e[(a, b)] = env_info_a.rewards[b] * self.reward_scale
+            reward_e[(a, b)] = env_info_a.rewards[b] # * self.reward_scale
             state_e[(a, b)] = env_info_a.states[b]
             done_e[(a, b)] = env_info_a.local_done[b]
         self.done = (util.nonan_all(done_e) or self.clock.t > self.max_t)
         logger.debug(f'Env {self.e} step reward_e: {reward_e}, state_e: {state_e}, done_e: {done_e}')
         return reward_e, state_e, done_e
+
+    def get_task_success(self):
+        a, b = 0, 0
+        env_info_a = self.u_env.env_info[a]
+        reward = env_info_a.rewards[b]
+        if reward > 0 :
+            return True
+        else:
+            return False
+        
+        
