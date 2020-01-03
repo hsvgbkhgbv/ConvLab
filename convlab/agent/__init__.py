@@ -320,11 +320,11 @@ class Body:
             # epi and frame are always measured from training env
             'epi': self.env.clock.get('epi'),
             # t and reward are measured from a given env or eval_env
-            # 't': env.clock.get('t'),
-            # 'wall_t': wall_t,
-            # 'opt_step': self.env.clock.get('opt_step'),
+            't': env.clock.get('t'),
+            'wall_t': wall_t,
+            'opt_step': self.env.clock.get('opt_step'),
             'frame': frame,
-            # 'fps': fps,
+            'fps': fps,
             'total_reward': np.nanmean(self.total_reward),  # guard for vec env
             'avg_return': np.nan,  # update outside
             'avg_len': np.nan,  # update outside
@@ -332,8 +332,8 @@ class Body:
             'loss': self.loss,
             'lr': self.get_mean_lr(),
             'explore_var': self.explore_var,
-            # 'entropy_coef': self.entropy_coef if hasattr(self, 'entropy_coef') else np.nan,
-            # 'entropy': self.mean_entropy,
+            'entropy_coef': self.entropy_coef if hasattr(self, 'entropy_coef') else np.nan,
+            'entropy': self.mean_entropy,
             'grad_norm': self.mean_grad_norm,
         }, dtype=np.float32)
         assert all(col in self.train_df.columns for col in row.index), f'Mismatched row keys: {row.index} vs df columns {self.train_df.columns}'
